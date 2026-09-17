@@ -1005,26 +1005,61 @@ extern "C"
 
                 case HID_USAGE_DESKTOP_JOYSTICK:
                 {
-                    // TU_LOG1("HID receive joystick report\n");
-                    struct JoyStickReport
-                    {
-                        uint8_t axis[3];
-                        uint8_t buttons;
-                        // 実際のところはしらん
-                    };
-                    auto *rep = reinterpret_cast<const JoyStickReport *>(report);
-                    //                printf("x %d y %d button %02x\n", rep->axis[0], rep->axis[1], rep->buttons);
                     auto &gp = io::getCurrentGamePadState(player);
-                    gp.axis[0] = rep->axis[0];
-                    gp.axis[1] = rep->axis[1];
-                    gp.axis[2] = rep->axis[2];
-                    gp.buttons = rep->buttons;
-                    gp.convertButtonsFromAxis(0, 1);
-
-                    // BUFFALO BGC-FC801
-                    // VID = 0411, PID = 00c6
+                    
+                    // Проверяем, наш ли это джойстик (DragonRise)
+                    uint16_t vid, pid;
+                    tuh_vid_pid_get(dev_addr, &vid, &pid);
+                    
+                    if (vid == 0x0079 && pid == 0x0006) {
+                        // ДЖОЙСТИК №1 (DragonRise) - ваша раскладка
+                        // Отчёт: [0]=X, [1]=Y, [4]=кнопки A/B/Select, [5]=Start
+                        if (len >= 6) {
+                            // Крестик (оси X и Y)
+                            gp.axis[0] = report[0];  // AXIS 0 (лево/право)
+                            gp.axis[1] = report[1];  // AXIS 1 (вверх/вниз)
+                            
+                            // Кнопки (расшифровка для DragonRise)
+                            gp.buttons = 0;
+                            // A = B2 = бит 6 в report[4]
+                            if (report[4] & 0x40) gp.buttons |= io::GamePadState::Button::A;
+                            // B = B1 = бит 5 в report[4]
+                            if (report[4] & 0x20) gp.buttons |= io::GamePadState::Button::B;
+                            // Select = B4 = бит 3 в report[4]
+                            if (report[4] & 0x08) gp.buttons |= io::GamePadState::Button::SELECT;
+                            // Start = B9 = бит 5 в report[5]
+                            if (report[5] & 0x20) gp.buttons |= io::GamePadState::Button::START;
+                            
+                            // Дополнительные кнопки (C, X, Y, Z) - если нужно
+                            // C = B5 = бит 4 в report[5] (по вашей раскладке)
+                            if (report[5] & 0x10) gp.buttons |= io::GamePadState::Button::X;
+                            // X = B3 = бит 2 в report[4] (по вашей раскладке)
+                            if (report[4] & 0x04) gp.buttons |= io::GamePadState::Button::Y;
+                            // Y = B0 = бит 0 в report[4] (по вашей раскладке)
+                            if (report[4] & 0x01) gp.buttons |= io::GamePadState::Button::L;
+                            // Z = B4 = бит 4 в report[4] (по вашей раскладке)
+                            if (report[4] & 0x10) gp.buttons |= io::GamePadState::Button::R;
+                            
+                            gp.convertButtonsFromAxis(0, 1);
+                            gp.flagConnected(true);
+                        }
+                    } else {
+                        // Стандартная обработка для других джойстиков
+                        struct JoyStickReport
+                        {
+                            uint8_t axis[3];
+                            uint8_t buttons;
+                        };
+                        auto *rep = reinterpret_cast<const JoyStickReport *>(report);
+                        gp.axis[0] = rep->axis[0];
+                        gp.axis[1] = rep->axis[1];
+                        gp.axis[2] = rep->axis[2];
+                        gp.buttons = rep->buttons;
+                        gp.convertButtonsFromAxis(0, 1);
+                    }
                 }
                 break;
+
 
                 case HID_USAGE_DESKTOP_GAMEPAD:
                     TU_LOG1("HID receive gamepad report\n");
