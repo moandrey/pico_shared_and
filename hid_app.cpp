@@ -1019,26 +1019,25 @@ extern "C"
                             gp.axis[0] = report[0];  // AXIS 0 (лево/право)
                             gp.axis[1] = report[1];  // AXIS 1 (вверх/вниз)
                             
-                            // Кнопки (расшифровка для DragonRise)
+                            // Кнопки
                             gp.buttons = 0;
                             // A = B2 = бит 6 в report[4]
                             if (report[4] & 0x40) gp.buttons |= io::GamePadState::Button::A;
                             // B = B1 = бит 5 в report[4]
                             if (report[4] & 0x20) gp.buttons |= io::GamePadState::Button::B;
-                            // Select = B4 = бит 3 в report[4]
-                            if (report[4] & 0x08) gp.buttons |= io::GamePadState::Button::SELECT;
                             // Start = B9 = бит 5 в report[5]
                             if (report[5] & 0x20) gp.buttons |= io::GamePadState::Button::START;
                             
-                            // Дополнительные кнопки (C, X, Y, Z) - если нужно
-                            // C = B5 = бит 4 в report[5] (по вашей раскладке)
+                            // SELECT назначен на кнопку Z (B4 = бит 4 в report[4])
+                            if (report[4] & 0x10) gp.buttons |= io::GamePadState::Button::SELECT;
+                            
+                            // Дополнительные кнопки
+                            // C = B5 = бит 4 в report[5]
                             if (report[5] & 0x10) gp.buttons |= io::GamePadState::Button::X;
-                            // X = B3 = бит 2 в report[4] (по вашей раскладке)
+                            // X = B3 = бит 2 в report[4]
                             if (report[4] & 0x04) gp.buttons |= io::GamePadState::Button::Y;
-                            // Y = B0 = бит 0 в report[4] (по вашей раскладке)
+                            // Y = B0 = бит 0 в report[4]
                             if (report[4] & 0x01) gp.buttons |= io::GamePadState::Button::L;
-                            // Z = B4 = бит 4 в report[4] (по вашей раскладке)
-                            if (report[4] & 0x10) gp.buttons |= io::GamePadState::Button::R;
                             
                             gp.convertButtonsFromAxis(0, 1);
                             gp.flagConnected(true);
