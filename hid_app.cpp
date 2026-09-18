@@ -1025,10 +1025,9 @@ printf("=======================\n");
                     }
                     break;
 
-                case HID_USAGE_DESKTOP_JOYSTICK:
-                {
-
-                        // === ПРИНУДИТЕЛЬНЫЙ ВЫВОД ОТЧЁТА ===
+case HID_USAGE_DESKTOP_JOYSTICK:
+{
+    // === ПРИНУДИТЕЛЬНЫЙ ВЫВОД ОТЧЁТА ===
     printf("JOYSTICK report len=%d:", len);
     for (int i = 0; i < len && i < 16; i++) {
         printf(" %02x", report[i]);
@@ -1036,62 +1035,54 @@ printf("=======================\n");
     printf("\n");
     // =====================================
 
-
-
-                    
-                    auto &gp = io::getCurrentGamePadState(player);
-                    
-                    // Проверяем, наш ли это джойстик (DragonRise)
-                    uint16_t vid, pid;
-                    tuh_vid_pid_get(dev_addr, &vid, &pid);
-                    
-                    if (vid == 0x0079 && pid == 0x0006) {
-                        // ДЖОЙСТИК №1 (DragonRise) - ваша раскладка
-                        // Отчёт: [0]=X, [1]=Y, [4]=кнопки A/B/Select, [5]=Start
-                        if (len >= 6) {
-                            // Крестик (оси X и Y)
-                            gp.axis[0] = report[0];  // AXIS 0 (лево/право)
-                            gp.axis[1] = report[1];  // AXIS 1 (вверх/вниз)
-                            
-                            // Кнопки
-                            gp.buttons = 0;
-                            // A = B2 = бит 6 в report[4]
-                            if (report[4] & 0x40) gp.buttons |= io::GamePadState::Button::A;
-                            // B = B1 = бит 5 в report[4]
-                            if (report[4] & 0x20) gp.buttons |= io::GamePadState::Button::B;
-                            // Start = B9 = бит 5 в report[5]
-                            if (report[5] & 0x20) gp.buttons |= io::GamePadState::Button::START;
-                            
-                            // SELECT назначен на кнопку Z (B4 = бит 4 в report[4])
-                            if (report[4] & 0x10) gp.buttons |= io::GamePadState::Button::SELECT;
-                            
-                            // Дополнительные кнопки
-                            // C = B5 = бит 4 в report[5]
-                            if (report[5] & 0x10) gp.buttons |= io::GamePadState::Button::X;
-                            // X = B3 = бит 2 в report[4]
-                            if (report[4] & 0x04) gp.buttons |= io::GamePadState::Button::Y;
-                            // Y = B0 = бит 0 в report[4]
-                            if (report[4] & 0x01) gp.buttons |= io::GamePadState::Button::L;
-                            
-                            gp.convertButtonsFromAxis(0, 1);
-                            gp.flagConnected(true);
-                        }
-                    } else {
-                        // Стандартная обработка для других джойстиков
-                        struct JoyStickReport
-                        {
-                            uint8_t axis[3];
-                            uint8_t buttons;
-                        };
-                        auto *rep = reinterpret_cast<const JoyStickReport *>(report);
-                        gp.axis[0] = rep->axis[0];
-                        gp.axis[1] = rep->axis[1];
-                        gp.axis[2] = rep->axis[2];
-                        gp.buttons = rep->buttons;
-                        gp.convertButtonsFromAxis(0, 1);
-                    }
-                }
-                break;
+    auto &gp = io::getCurrentGamePadState(player);
+    
+    uint16_t vid, pid;
+    tuh_vid_pid_get(dev_addr, &vid, &pid);
+    
+    if (vid == 0x0079 && pid == 0x0006) {
+        // ... ваш существующий код для проводного DragonRise ...
+    }
+    // === ВСТАВИТЬ ЗДЕСЬ ===
+    else if (vid == 0x0079 && pid == 0x0126) {
+        // TGZ-850M / DragonRise 0079:0126 (беспроводной)
+        if (len >= 8) {
+            gp.axis[0] = report[0];  // X
+            gp.axis[1] = report[1];  // Y
+            
+            uint16_t buttons = report[5] | (report[6] << 8);
+            
+            gp.buttons = 0;
+            if (buttons & (1 << 0)) gp.buttons |= io::GamePadState::Button::X;
+            if (buttons & (1 << 1)) gp.buttons |= io::GamePadState::Button::A;
+            if (buttons & (1 << 2)) gp.buttons |= io::GamePadState::Button::B;
+            if (buttons & (1 << 3)) gp.buttons |= io::GamePadState::Button::Y;
+            if (buttons & (1 << 4)) gp.buttons |= io::GamePadState::Button::L;
+            if (buttons & (1 << 5)) gp.buttons |= io::GamePadState::Button::R;
+            if (buttons & (1 << 8)) gp.buttons |= io::GamePadState::Button::SELECT;
+            if (buttons & (1 << 9)) gp.buttons |= io::GamePadState::Button::START;
+            
+            gp.convertButtonsFromAxis(0, 1);
+            gp.flagConnected(true);
+        }
+    }
+    // ====================
+    else {
+        // Стандартная обработка для других джойстиков
+        struct JoyStickReport
+        {
+            uint8_t axis[3];
+            uint8_t buttons;
+        };
+        auto *rep = reinterpret_cast<const JoyStickReport *>(report);
+        gp.axis[0] = rep->axis[0];
+        gp.axis[1] = rep->axis[1];
+        gp.axis[2] = rep->axis[2];
+        gp.buttons = rep->buttons;
+        gp.convertButtonsFromAxis(0, 1);
+    }
+}
+break;
 
 
                 case HID_USAGE_DESKTOP_GAMEPAD:
