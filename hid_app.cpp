@@ -14,7 +14,7 @@
 
 // set to 1 to enable printing of button states in binary when they change
 #ifndef PRINTFBUTTONS
-#define PRINTFBUTTONS 0
+#define PRINTFBUTTONS 1
 #endif
 
 // Default mode for the MantaPad (081f:e401), which is sold both as a NES-
