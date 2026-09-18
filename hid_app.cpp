@@ -1005,6 +1005,18 @@ extern "C"
 
                 case HID_USAGE_DESKTOP_JOYSTICK:
                 {
+
+                        // === ПРИНУДИТЕЛЬНЫЙ ВЫВОД ОТЧЁТА ===
+    printf("JOYSTICK report len=%d:", len);
+    for (int i = 0; i < len && i < 16; i++) {
+        printf(" %02x", report[i]);
+    }
+    printf("\n");
+    // =====================================
+
+
+
+                    
                     auto &gp = io::getCurrentGamePadState(player);
                     
                     // Проверяем, наш ли это джойстик (DragonRise)
