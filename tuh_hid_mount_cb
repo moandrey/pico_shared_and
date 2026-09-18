@@ -2,7 +2,7 @@
  * author : Shuichi TAKANO
  * since  : Thu Jul 29 2021 03:39:11
  */
-
+а
 #include <tusb.h>
 #include <stdio.h>
 #include <string.h>
@@ -492,6 +492,11 @@ extern "C"
         _report_count[instance] = tuh_hid_parse_report_descriptor(_report_info_arr[instance], MAX_REPORT, desc_report, desc_len);
         printf("HID has %u reports and interface protocol = %d:%s\n", _report_count[instance],
                interface_protocol, protocol_str[interface_protocol]);
+
+// Попытка заставить джойстик отправлять отчёты
+tuh_hid_set_protocol(dev_addr, instance, HID_PROTOCOL_BOOT);
+tuh_hid_set_idle(dev_addr, instance, 0);
+        
 
         // ДИАГНОСТИКА
 printf("=== HID DIAGNOSTICS ===\n");
