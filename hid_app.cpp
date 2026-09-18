@@ -493,6 +493,17 @@ extern "C"
         printf("HID has %u reports and interface protocol = %d:%s\n", _report_count[instance],
                interface_protocol, protocol_str[interface_protocol]);
 
+        // ДИАГНОСТИКА
+printf("=== HID DIAGNOSTICS ===\n");
+printf("report_count = %d\n", _report_count[instance]);
+for (int i = 0; i < _report_count[instance]; i++) {
+    printf("  report[%d]: id=%d, usage_page=0x%04x, usage=0x%04x\n",
+           i, _report_info_arr[instance][i].report_id,
+           _report_info_arr[instance][i].usage_page,
+           _report_info_arr[instance][i].usage);
+}
+printf("=======================\n");
+
         // A boot-protocol keyboard is recognised here rather than when its first key
         // arrives. Without this, anything the menu offers before the user has typed
         // anything finds no keyboard: creating a blank disk asks for a name, and would
@@ -573,6 +584,17 @@ extern "C"
             return;
         }
 
+        // === ДИАГНОСТИКА ===
+        printf("REPORT RECEIVED: dev=%d inst=%d len=%d\n", dev_addr, instance, len);
+        for (int i = 0; i < len && i < 16; i++) {
+            printf("  byte[%d] = 0x%02x\n", i, report[i]);
+        }
+        // ===================
+
+
+
+
+        
         uint8_t const rpt_count = _report_count[instance];
         tuh_hid_report_info_t *rpt_info_arr = _report_info_arr[instance];
         tuh_hid_report_info_t *rpt_info = NULL;
