@@ -488,17 +488,25 @@ extern "C"
         const char *protocol_str[] = {"None", "Keyboard", "Mouse"}; // hid_protocol_type_t
         uint8_t const interface_protocol = tuh_hid_interface_protocol(dev_addr, instance);
 
-        // Parse report descriptor with built-in parser
+
+// Parse report descriptor with built-in parser
         _report_count[instance] = tuh_hid_parse_report_descriptor(_report_info_arr[instance], MAX_REPORT, desc_report, desc_len);
         printf("HID has %u reports and interface protocol = %d:%s\n", _report_count[instance],
                interface_protocol, protocol_str[interface_protocol]);
 
-// Попытка заставить джойстик отправлять отчёты
-tuh_hid_set_protocol(dev_addr, instance, HID_PROTOCOL_BOOT);
-tuh_hid_set_idle(dev_addr, instance, 0);
-        
+        // === ИСПРАВЛЕННЫЙ ХАК ДЛЯ DRAGONRISE / TGZ-850M ===
+        // Мы НЕ трогаем Protocol, это ломает геймпады.
+        // Мы отправляем SET_IDLE = 0 (бесконечно) только нужным VID.
+        if (vid == 0x0079) {
+            printf(">>> APPLYING WAKE-UP HACK FOR DRAGONRISE (VID:0079) <<<\n");
+            // Просим джойстик не ждать, а слать данные при любом изменении
+            tuh_hid_set_idle(dev_addr, instance, 0);
+        }
+        // ==================================================
 
         // ДИАГНОСТИКА
+        printf("=== HID DIAGNOSTICS ===\n");
+
 printf("=== HID DIAGNOSTICS ===\n");
 printf("report_count = %d\n", _report_count[instance]);
 for (int i = 0; i < _report_count[instance]; i++) {
