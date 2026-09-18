@@ -498,7 +498,7 @@ extern "C"
         // === НАШ ХАК ДЛЯ DRAGONRISE / TGZ-850M ===
         if (vid == 0x0079) {
             printf(">>> APPLYING WAKE-UP HACK FOR DRAGONRISE (VID:0079) <<<\n");
-            tuh_hid_set_idle(dev_addr, instance, 0);
+
             
             // Если это именно беспроводной TGZ-850M, даем ему "магический пинок"
             if (pid == 0x0126) {
